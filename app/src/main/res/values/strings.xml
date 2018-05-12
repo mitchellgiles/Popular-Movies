@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+
+    //URL Strings
+    <string name="url_scheme" translatable="false">https</string>
+    <string name="movie_url_base" translatable="false">api.themoviedb.org/3/movie</string>
+    <string name="image_url_base" translatable="false">image.tmdb.org/t/p/</string>
+    <string name="language" translatable="false">language</string>
+    <string name="language_us" translatable="false">us-en</string>
+    <string name="api_key" translatable="false">api_key</string>
+
+    //Shared Preference Strings
+    <string name="sort_by" translatable="false">sortBy</string>
+    <string name="popular" translatable="false">popular</string>
+    <string name="top_rated" translatable="false">top_rated</string>
+
+    <string name="error_message">Error. Please try again.</string>
+
+    //Strings in List and Detail Activity
+    <string name="intent_extra" translatable="false">movieId</string>
+    <string name="ratings" translatable="false">/10</string>
+
+    //Menu
+    <string name="popular_menu">Popular</string>
+    <string name="top_rated_menu">Top Rated</string>
+</resources>
