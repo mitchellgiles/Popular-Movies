@@ -3,6 +3,7 @@ package com.github.mitchellrgiles.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -44,10 +45,16 @@ public class MoviesDetailActivity extends AppCompatActivity {
         String movieId = intent.getStringExtra(getResources().getString(R.string.intent_extra));
 
         URL movieUrl = MoviesUrlBuilder.movieDetailUrlBuilder(this, movieId);
-        ConnectivityManager connectivityManager = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager.getActiveNetworkInfo().isAvailable()) {
-            MovieDetailTask task = new MovieDetailTask();
-            task.execute(movieUrl);
+        Context context = this;
+        ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo == null) {
+                showErrorMessage(true);
+            } else if (connectivityManager.getActiveNetworkInfo().isAvailable()) {
+                MovieDetailTask task = new MovieDetailTask();
+                task.execute(movieUrl);
+            }
         } else {
             showErrorMessage(true);
         }

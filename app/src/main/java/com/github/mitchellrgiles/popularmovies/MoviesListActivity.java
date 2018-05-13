@@ -3,6 +3,7 @@ package com.github.mitchellrgiles.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -86,10 +87,16 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
     private void startTask() {
         URL movieListUrl =  MoviesUrlBuilder.moviesListUrlBuilder(this);
 
-        ConnectivityManager connectivityManager = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager.getActiveNetworkInfo().isAvailable()) {
-            MovieListTask task = new MovieListTask();
-            task.execute(movieListUrl);
+        Context context = this;
+        ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo == null) {
+                showErrorMessage();
+            } else if (connectivityManager.getActiveNetworkInfo().isAvailable()) {
+                MovieListTask task = new MovieListTask();
+                task.execute(movieListUrl);
+            }
         } else {
             showErrorMessage();
         }
