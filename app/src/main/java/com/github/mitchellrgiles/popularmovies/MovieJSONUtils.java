@@ -43,4 +43,40 @@ public class MovieJSONUtils {
 
         return new Movie(movieTitle, moviePosterPath, movieOverview, movieAverageVote, movieReleaseDate);
     }
+
+    public static List<Trailers> getTrailersFromJson(String trailerJsonString) throws JSONException {
+        List<Trailers> trailersList = new ArrayList<>();
+
+        JSONObject trailerListJsonObject = new JSONObject(trailerJsonString);
+        JSONArray trailerListJsonArray = trailerListJsonObject.getJSONArray("results");
+
+        for(int i = 0; i < trailerListJsonArray.length(); i++) {
+            JSONObject trailerJsonObject = trailerListJsonArray.getJSONObject(i);
+            
+            String trailerKey = trailerJsonObject.getString("key");
+            String trailerName = trailerJsonObject.getString("name");
+            
+            trailersList.add(new Trailers(trailerKey, trailerName));
+        }
+        
+        return trailersList;
+    }
+
+    public static List<Reviews> getReviewssFromJson(String reviewJsonString) throws JSONException {
+        List<Reviews> reviewList = new ArrayList<>();
+
+        JSONObject reviewListJsonObject = new JSONObject(reviewJsonString);
+        JSONArray reviewListJsonArray = reviewListJsonObject.getJSONArray("results");
+
+        for(int i = 0; i < reviewListJsonArray.length(); i++) {
+            JSONObject reviewJsonObject = reviewListJsonArray.getJSONObject(i);
+
+            String reviewAuthor = reviewJsonObject.getString("author");
+            String reviewContent = reviewJsonObject.getString("content");
+
+            reviewList.add(new Reviews(reviewAuthor, reviewContent));
+        }
+
+        return reviewList;
+    }
 }

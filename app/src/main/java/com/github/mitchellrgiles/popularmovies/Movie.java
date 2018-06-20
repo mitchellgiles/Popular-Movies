@@ -2,17 +2,17 @@ package com.github.mitchellrgiles.popularmovies;
 
 public class Movie {
 
-    public String movieTitle;
+    private String movieTitle;
 
-    public String posterPath;
+    private String posterPath;
 
-    public String overview;
+    private String overview;
 
-    public String averageVote;
+    private String averageVote;
 
-    public String releaseDate;
+    private String releaseDate;
 
-    public String movieId;
+    private String movieId;
 
     public Movie(String movieTitle, String posterPath, String movieiId) {
         this.movieTitle = movieTitle;

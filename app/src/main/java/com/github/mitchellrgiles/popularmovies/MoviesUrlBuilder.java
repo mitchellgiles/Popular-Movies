@@ -52,6 +52,54 @@ public class MoviesUrlBuilder {
         return movieUrl;
     }
 
+    public static URL movieTrailersUrlBuilder(Context context, String movieId) {
+        URL movieUrl = null;
+        Uri.Builder movieUri = new Uri.Builder();
+        movieUri.scheme(context.getResources().getString(R.string.url_scheme))
+                .encodedAuthority(context.getResources().getString(R.string.movie_url_base))
+                .appendPath(context.getResources().getString(R.string.trailers))
+                .appendPath(movieId)
+                .appendQueryParameter(context.getResources().getString(R.string.api_key), context.getResources().getString(R.string.api_key_value));
+
+        try {
+            movieUrl = new URL(movieUri.toString());
+            Log.d("Test", "movieDetailUrlBuilder: " + movieUrl);
+        } catch (IOException e) {
+            Log.e("Test", "movieDetailUrlBuilder: ", e);
+        }
+
+        return movieUrl;
+    }
+
+    public static String youtubeVideoUrlBuilder(String youtubeVideoId) {
+        return "https://www.youtube.com/watch?v=" + youtubeVideoId;
+
+    }
+
+    public static String youtubeThumnailUrlBuilder(String youtubeVideoId) {
+        return "https://img.youtube.com/vi/n" + youtubeVideoId
+                + "/0.jpg";
+    }
+
+    public static URL movieReviewsUrlBuilder(Context context, String movieId) {
+        URL movieUrl = null;
+        Uri.Builder movieUri = new Uri.Builder();
+        movieUri.scheme(context.getResources().getString(R.string.url_scheme))
+                .encodedAuthority(context.getResources().getString(R.string.movie_url_base))
+                .appendPath(movieId)
+                .appendPath(context.getResources().getString(R.string.reviews))
+                .appendQueryParameter(context.getResources().getString(R.string.api_key), context.getResources().getString(R.string.api_key_value));
+
+        try {
+            movieUrl = new URL(movieUri.toString());
+            Log.d("Test", "movieDetailUrlBuilder: " + movieUrl);
+        } catch (IOException e) {
+            Log.e("Test", "movieDetailUrlBuilder: ", e);
+        }
+
+        return movieUrl;
+    }
+
     public static String moviePosterUrlBuilder(Context context, String moviePosterPath, String imageSize) {
         return context.getResources().getString(R.string.url_scheme) + "://"
                 + context.getResources().getString(R.string.image_url_base) + imageSize + moviePosterPath;
