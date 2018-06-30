@@ -18,6 +18,10 @@ public class Trailers {
         this.videoUrl = MoviesUrlBuilder.youtubeVideoUrlBuilder(movieKey);
     }
 
+    public String getMovieKey() {
+        return this.movieKey;
+    }
+
     public String getTrailerName() {
         return this.trailerName;
     }

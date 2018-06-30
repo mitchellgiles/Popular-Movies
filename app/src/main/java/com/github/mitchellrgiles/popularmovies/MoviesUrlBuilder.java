@@ -57,8 +57,8 @@ public class MoviesUrlBuilder {
         Uri.Builder movieUri = new Uri.Builder();
         movieUri.scheme(context.getResources().getString(R.string.url_scheme))
                 .encodedAuthority(context.getResources().getString(R.string.movie_url_base))
-                .appendPath(context.getResources().getString(R.string.trailers))
                 .appendPath(movieId)
+                .appendPath(context.getResources().getString(R.string.trailers))
                 .appendQueryParameter(context.getResources().getString(R.string.api_key), context.getResources().getString(R.string.api_key_value));
 
         try {
@@ -77,7 +77,7 @@ public class MoviesUrlBuilder {
     }
 
     public static String youtubeThumnailUrlBuilder(String youtubeVideoId) {
-        return "https://img.youtube.com/vi/n" + youtubeVideoId
+        return "https://img.youtube.com/vi/" + youtubeVideoId
                 + "/0.jpg";
     }
 

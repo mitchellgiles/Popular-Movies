@@ -1,12 +1,16 @@
 package com.github.mitchellrgiles.popularmovies;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -16,8 +20,9 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.net.URL;
+import java.util.List;
 
-public class MoviesDetailActivity extends AppCompatActivity {
+public class MoviesDetailActivity extends AppCompatActivity implements TrailerAdapter.TrailerAdapterOnClickHandler, ReviewAdapter.ReviewAdapterOnClickHandler {
 
     TextView movieTitle;
     TextView movieReleaseDate;
@@ -26,6 +31,10 @@ public class MoviesDetailActivity extends AppCompatActivity {
     TextView movieOverview;
     ProgressBar movieDetailPb;
     TextView movieDetailErrorMessage;
+    private TrailerAdapter trailerAdapter;
+    private ReviewAdapter reviewAdapter;
+    private RecyclerView trailerRecyclerView;
+    private RecyclerView reviewRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +49,35 @@ public class MoviesDetailActivity extends AppCompatActivity {
         movieDetailPb = findViewById(R.id.movie_detail_pb);
         movieDetailErrorMessage = findViewById(R.id.movie_detail_error_message);
 
+        Context context = this;
 
         Intent intent = getIntent();
         String movieId = intent.getStringExtra(getResources().getString(R.string.intent_extra));
 
+        trailerRecyclerView = findViewById(R.id.trailers);
+
+        RecyclerView.LayoutManager trailerLayoutManager = new LinearLayoutManager(this);
+        trailerRecyclerView.setLayoutManager(trailerLayoutManager);
+        trailerRecyclerView.setHasFixedSize(true);
+
+        trailerAdapter = new TrailerAdapter(context, this);
+
+        trailerRecyclerView.setAdapter(trailerAdapter);
+
+        reviewRecyclerView = findViewById(R.id.reviews);
+
+        RecyclerView.LayoutManager reviewLayoutManager = new LinearLayoutManager(this);
+        reviewRecyclerView.setLayoutManager(reviewLayoutManager);
+        reviewRecyclerView.setHasFixedSize(true);
+
+        reviewAdapter = new ReviewAdapter(context, this);
+
+        reviewRecyclerView.setAdapter(reviewAdapter);
+
         URL movieUrl = MoviesUrlBuilder.movieDetailUrlBuilder(this, movieId);
-        Context context = this;
+        URL trailerUrl = MoviesUrlBuilder.movieTrailersUrlBuilder(this, movieId);
+        URL reviewUrl = MoviesUrlBuilder.movieReviewsUrlBuilder(this, movieId);
+
         ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
@@ -54,10 +86,33 @@ public class MoviesDetailActivity extends AppCompatActivity {
             } else if (connectivityManager.getActiveNetworkInfo().isAvailable()) {
                 MovieDetailTask task = new MovieDetailTask();
                 task.execute(movieUrl);
+
+                TrailerTask trailerTask = new TrailerTask();
+                trailerTask.execute(trailerUrl);
+
+                ReviewTask reviewTask = new ReviewTask();
+                reviewTask.execute(reviewUrl);
             }
         } else {
             showErrorMessage(true);
         }
+    }
+
+    @Override
+    public void onClick(String trailerUrl, String movieKey) {
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + movieKey));
+        Intent webIntent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse(trailerUrl));
+        try {
+            MoviesDetailActivity.this.startActivity(appIntent);
+        } catch (ActivityNotFoundException ex) {
+            MoviesDetailActivity.this.startActivity(webIntent);
+        }
+    }
+
+    @Override
+    public void onClick() {
+
     }
 
     public void showErrorMessage(Boolean hideOrShow) {
@@ -110,6 +165,56 @@ public class MoviesDetailActivity extends AppCompatActivity {
         protected void onPostExecute(Movie movie) {
             showProgressBar(false);
             populateMovieData(movie);
+        }
+    }
+
+    public class TrailerTask extends AsyncTask<URL, Void, List<Trailers>> {
+        @Override
+        protected List<Trailers> doInBackground(URL... urls) {
+            String jsonTrailerListResponse;
+            if(urls.length == 0) return null;
+
+            try {
+                URL trailersListUrl = urls[0];
+
+                jsonTrailerListResponse = NetworkUtils.getResponseFromHttpsUrl(trailersListUrl);
+                return MovieJSONUtils.getTrailersFromJson(jsonTrailerListResponse);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Trailers> trailers) {
+            if(trailers != null) {
+                Log.d("TEST", "onPostExecute: TrailerTask");
+                trailerAdapter.setTrailersList(trailers);
+            }
+        }
+    }
+
+    public class ReviewTask extends AsyncTask<URL, Void, List<Reviews>> {
+        @Override
+        protected List<Reviews> doInBackground(URL... urls) {
+            String jsonReviewListResponse;
+            if(urls.length == 0) return null;
+
+            try {
+                URL reviewListUrl = urls[0];
+
+                jsonReviewListResponse = NetworkUtils.getResponseFromHttpsUrl(reviewListUrl);
+                return MovieJSONUtils.getReviewsFromJson(jsonReviewListResponse);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Reviews> reviews) {
+            if(reviews != null) {
+                Log.d("TEST!@@!@!", "onPostExecute: ReviewTask");
+                reviewAdapter.setReviewsList(reviews);
+            }
         }
     }
 

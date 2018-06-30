@@ -69,11 +69,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         String moviePosterUrl = MoviesUrlBuilder.moviePosterUrlBuilder(context, imagePath, "w185");
         Log.d("TEST", "onBindViewHolder: " + moviePosterUrl);
 
-      Picasso.with(context).setLoggingEnabled(true);
-
         Picasso.with(context).load(moviePosterUrl).error(R.mipmap.ic_launcher).placeholder(R.mipmap.ic_launcher).into(movieAdapterViewHolder.moviePosterImageView);
-
-
     }
 
     @Override

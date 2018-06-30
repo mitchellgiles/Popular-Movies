@@ -62,7 +62,7 @@ public class MovieJSONUtils {
         return trailersList;
     }
 
-    public static List<Reviews> getReviewssFromJson(String reviewJsonString) throws JSONException {
+    public static List<Reviews> getReviewsFromJson(String reviewJsonString) throws JSONException {
         List<Reviews> reviewList = new ArrayList<>();
 
         JSONObject reviewListJsonObject = new JSONObject(reviewJsonString);
@@ -72,6 +72,7 @@ public class MovieJSONUtils {
             JSONObject reviewJsonObject = reviewListJsonArray.getJSONObject(i);
 
             String reviewAuthor = reviewJsonObject.getString("author");
+            Log.d("TEST", "getReviewsFromJson: " + reviewAuthor);
             String reviewContent = reviewJsonObject.getString("content");
 
             reviewList.add(new Reviews(reviewAuthor, reviewContent));
