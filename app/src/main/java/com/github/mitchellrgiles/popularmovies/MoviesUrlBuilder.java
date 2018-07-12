@@ -101,8 +101,12 @@ public class MoviesUrlBuilder {
     }
 
     public static String moviePosterUrlBuilder(Context context, String moviePosterPath, String imageSize) {
-        return context.getResources().getString(R.string.url_scheme) + "://"
-                + context.getResources().getString(R.string.image_url_base) + imageSize + moviePosterPath;
+        if (moviePosterPath.contains("https")) {
+            return moviePosterPath;
+        } else {
+            return context.getResources().getString(R.string.url_scheme) + "://"
+                    + context.getResources().getString(R.string.image_url_base) + imageSize + moviePosterPath;
+        }
     }
 
 }

@@ -11,9 +11,9 @@ import java.util.List;
 
 public class MovieJSONUtils {
 
-    public static List<Movie> getMovieListFromJson(String movieJsonString) throws JSONException {
+    public static ArrayList<Movie> getMovieListFromJson(String movieJsonString) throws JSONException {
 
-        List<Movie> movieList = new ArrayList<>();
+        ArrayList<Movie> movieList = new ArrayList<Movie>();
 
         JSONObject movieListJsonObject = new JSONObject(movieJsonString);
         JSONArray movieListJsonArray = movieListJsonObject.getJSONArray("results");
@@ -27,6 +27,7 @@ public class MovieJSONUtils {
 
             movieList.add(new Movie(movieTitle, moviePosterPath, movieId));
         }
+
 
         return movieList;
     }

@@ -1,16 +1,17 @@
 package com.github.mitchellrgiles.popularmovies;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MoviesListActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
@@ -26,6 +28,8 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
     private MovieAdapter movieAdapter;
     private ProgressBar progressBar;
     private TextView errorMessageTextView;
+    private AppDatabase db;
+    private MovieListViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +39,12 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
         recyclerView = findViewById(R.id.recyclerview_movies);
         progressBar = findViewById(R.id.pb_loading_indicator_movie_list);
         errorMessageTextView = findViewById(R.id.tv_error_message_display_movie_list);
+
+        db = AppDatabase.getInstance(getApplicationContext());
+
+        MovieListViewModelFactory factory = new MovieListViewModelFactory(db);
+        this.viewModel = ViewModelProviders.of(this, factory).get(MovieListViewModel.class);
+
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
 
@@ -67,6 +77,16 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
                         getResources().getString(R.string.top_rated)).apply();
                 startTask();
                 break;
+            case R.id.action_favorite:
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putString(getResources().getString(R.string.sort_by), getResources().getString(R.string.favorite)).apply();
+                viewModel.getFavoriteMovies().observe(this, new Observer<List<Movie>>() {
+                    @Override
+                    public void onChanged(@Nullable List<Movie> movies) {
+                        movieAdapter.setMovie(movies);
+                    }
+                });
+
+
         }
         return true;
     }
@@ -85,7 +105,12 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
     }
 
     private void startTask() {
-        URL movieListUrl =  MoviesUrlBuilder.moviesListUrlBuilder(this);
+        final URL movieListUrl =  MoviesUrlBuilder.moviesListUrlBuilder(this);
+        viewModel.setQueryUrl(movieListUrl);
+        Boolean isFavorites = false;
+        if (movieListUrl.toString().contains("favorite")) {
+            isFavorites = true;
+        }
 
         Context context = this;
         ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -94,8 +119,22 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
             if (networkInfo == null) {
                 showErrorMessage();
             } else if (connectivityManager.getActiveNetworkInfo().isAvailable()) {
-                MovieListTask task = new MovieListTask();
-                task.execute(movieListUrl);
+
+                if (isFavorites) {
+                    viewModel.getFavoriteMovies().observe(this, new Observer<List<Movie>>() {
+                        @Override
+                        public void onChanged(@Nullable List<Movie> movies) {
+                            movieAdapter.setMovie(movies);
+                        }
+                    });
+                } else {
+                    viewModel.getMovies().observe(this, new Observer<ArrayList<Movie>>() {
+                        @Override
+                        public void onChanged(@Nullable ArrayList<Movie> movies) {
+                            movieAdapter.setMovie(movies);
+                        }
+                    });
+                }
             }
         } else {
             showErrorMessage();
@@ -115,38 +154,4 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
 
     }
 
-    public class MovieListTask extends AsyncTask<URL, Void, List<Movie>> {
-        @Override
-        protected void onPreExecute() {
-            showProgressBar();
-        }
-
-        @Override
-        protected List<Movie> doInBackground(URL... urls) {
-            Log.d("TEST", "doInBackground: was called");
-            String jsonMovieListResponse;
-            if (urls.length == 0) return null;
-
-            try {
-                URL movieListUrl = urls[0];
-
-                jsonMovieListResponse = NetworkUtils.getResponseFromHttpsUrl(movieListUrl);
-                return MovieJSONUtils.getMovieListFromJson(jsonMovieListResponse);
-
-             } catch (Exception e) {
-                Log.e("ERROR", "doInBackground: ", e);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            if (movies != null) {
-                showMovieList();
-                movieAdapter.setMovie(movies);
-            } else {
-                showErrorMessage();
-            }
-        }
-    }
 }

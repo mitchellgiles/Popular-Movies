@@ -28,4 +28,7 @@
     //Menu
     <string name="popular_menu">Popular</string>
     <string name="top_rated_menu">Top Rated</string>
+    <string name="trailers_textview">Trailers</string>
+    <string name="reviews_textview">Reviews</string>
+    <string name="favorite">favorite</string>
 </resources>

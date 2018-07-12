@@ -8,6 +8,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -22,6 +23,8 @@ import com.squareup.picasso.Picasso;
 import java.net.URL;
 import java.util.List;
 
+
+
 public class MoviesDetailActivity extends AppCompatActivity implements TrailerAdapter.TrailerAdapterOnClickHandler, ReviewAdapter.ReviewAdapterOnClickHandler {
 
     TextView movieTitle;
@@ -31,10 +34,17 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
     TextView movieOverview;
     ProgressBar movieDetailPb;
     TextView movieDetailErrorMessage;
+    FloatingActionButton addToFavorites;
     private TrailerAdapter trailerAdapter;
     private ReviewAdapter reviewAdapter;
     private RecyclerView trailerRecyclerView;
     private RecyclerView reviewRecyclerView;
+    private AppDatabase db;
+    private String movieId;
+    private String moviePosterUrl;
+    private String movieTitleString;
+    private Boolean inDatabase = false;
+    private Movie currentMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +58,14 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
         movieOverview = findViewById(R.id.movie_detail_synopsis);
         movieDetailPb = findViewById(R.id.movie_detail_pb);
         movieDetailErrorMessage = findViewById(R.id.movie_detail_error_message);
+        addToFavorites = findViewById(R.id.add_to_favorites);
 
         Context context = this;
 
+        db = AppDatabase.getInstance(context);
+
         Intent intent = getIntent();
-        String movieId = intent.getStringExtra(getResources().getString(R.string.intent_extra));
+        movieId = intent.getStringExtra(getResources().getString(R.string.intent_extra));
 
         trailerRecyclerView = findViewById(R.id.trailers);
 
@@ -96,8 +109,27 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
         } else {
             showErrorMessage(true);
         }
+
+        addToFavorites.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                AppExecutors.getInstance().getDiskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (inDatabase) {
+                            db.movieDao().deleteMovie(currentMovie);
+                            inDatabase = false;
+                        } else {
+                            db.movieDao().insertMovie(currentMovie);
+                            inDatabase = true;
+                        }
+                    }
+                });
+
+            }
+        });
     }
 
+    //On Click for the trailers
     @Override
     public void onClick(String trailerUrl, String movieKey) {
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + movieKey));
@@ -112,7 +144,7 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
 
     @Override
     public void onClick() {
-
+        //On Click for the reviews. Not yet implemented
     }
 
     public void showErrorMessage(Boolean hideOrShow) {
@@ -124,12 +156,13 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
     }
 
     public void populateMovieData(Movie movie) {
-        movieTitle.setText(movie.getMovieTitle());
+        movieTitleString = movie.getMovieTitle();
+        movieTitle.setText(movieTitleString);
         movieReleaseDate.setText(movie.getReleaseDate());
         String rating = movie.getAverageVote() + getResources().getString(R.string.ratings);
         movieRating.setText(rating);
 
-        String moviePosterUrl = MoviesUrlBuilder.moviePosterUrlBuilder(this, movie.getPosterPath(), "w500");
+        moviePosterUrl = MoviesUrlBuilder.moviePosterUrlBuilder(this, movie.getPosterPath(), "w500");
         Picasso.with(this).setLoggingEnabled(true);
         Picasso.with(this).load(moviePosterUrl).placeholder(R.mipmap.ic_launcher).into(moviePoster);
 
@@ -165,6 +198,20 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
         protected void onPostExecute(Movie movie) {
             showProgressBar(false);
             populateMovieData(movie);
+            currentMovie = new Movie(movieTitleString, moviePosterUrl, movieId);
+            AppExecutors.getInstance().getDiskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    final String checkMovie = db.movieDao().checkFavoriteMovies(movieId);
+                    if (checkMovie == null) {
+                    } else {
+                        if (checkMovie.equals(currentMovie.getMovieTitle())) {
+                            inDatabase = true;
+                        }
+                    }
+
+                }
+            });
         }
     }
 
@@ -189,6 +236,8 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
             if(trailers != null) {
                 Log.d("TEST", "onPostExecute: TrailerTask");
                 trailerAdapter.setTrailersList(trailers);
+
+
             }
         }
     }
