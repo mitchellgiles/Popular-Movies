@@ -118,15 +118,17 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
                         if (inDatabase) {
                             db.movieDao().deleteMovie(currentMovie);
                             inDatabase = false;
+                            addToFavorites.setImageDrawable(getResources().getDrawable(R.drawable.round_thumb_up_white_18dp));
                         } else {
                             db.movieDao().insertMovie(currentMovie);
                             inDatabase = true;
+                            addToFavorites.setImageDrawable(getResources().getDrawable(R.drawable.round_thumb_down_white_18dp));
                         }
                     }
                 });
-
             }
         });
+
     }
 
     //On Click for the trailers
@@ -207,7 +209,9 @@ public class MoviesDetailActivity extends AppCompatActivity implements TrailerAd
                     } else {
                         if (checkMovie.equals(currentMovie.getMovieTitle())) {
                             inDatabase = true;
+                            addToFavorites.setImageDrawable(getResources().getDrawable(R.drawable.round_thumb_down_white_18dp));
                         }
+
                     }
 
                 }

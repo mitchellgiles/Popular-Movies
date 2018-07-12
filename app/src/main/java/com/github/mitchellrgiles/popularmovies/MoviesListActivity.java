@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -92,6 +93,12 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
     }
 
     @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        startTask();
+    }
+
+    @Override
     public void onClick(String movieId) {
         Intent intent = new Intent(MoviesListActivity.this, MoviesDetailActivity.class);
         intent.putExtra(getResources().getString(R.string.intent_extra), movieId);
@@ -106,6 +113,7 @@ public class MoviesListActivity extends AppCompatActivity implements MovieAdapte
 
     private void startTask() {
         final URL movieListUrl =  MoviesUrlBuilder.moviesListUrlBuilder(this);
+        Log.d("THE MAGICAL URL IS", "startTask: " + movieListUrl.toString());
         viewModel.setQueryUrl(movieListUrl);
         Boolean isFavorites = false;
         if (movieListUrl.toString().contains("favorite")) {
